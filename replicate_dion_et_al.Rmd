@@ -1,0 +1,380 @@
+---
+title: 'Replication: Gendered Citation...'
+author: "Mio Hienstorfer-Heitmann"
+date: "2 12 2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+```
+
+```{r load data, echo = FALSE, message = FALSE}
+
+
+## replicating Dion et al (2018): Gendered Citation Patterns across Political Science and Social Science Methodology Fields 
+
+# browseURL("https://www.cambridge.org/core/journals/political-analysis/article/gendered-citation-patterns-across-political-science-and-social-science-methodology-fields/5E8E92DB7454BCAE41A912F9E792CBA7#article")
+
+library(tidyverse)
+library(MASS)
+library(rstudioapi)
+library(foreign)
+library(optimx)
+library(rms)
+library(flextable)
+
+setwd(dirname(getActiveDocumentContext()$path))
+
+df <- read.dta("DSM2018PAreplication.dta")
+
+df_articles <- read.dta("DSM2018PAreplication_articlesonly.dta")
+
+```
+
+
+```{r replicate table 1}
+
+df_articles %>%
+  group_by(newjnlid, authorteam) %>%
+  summarise(N = n()) %>%
+  mutate(Percent = 100 * N / sum(N)) %>%
+  flextable()
+
+```
+
+```{r replicate table 2}
+
+df %>%
+  filter(refauthcomplete == 1 & !is.na(refteam)) %>%
+  group_by(newjnlid, refteam) %>%
+  summarise(N = n()) %>%
+  mutate(Percent = 100 * N / sum (N)) %>%
+  flextable()
+
+
+```
+
+In the following, I will replicate Table 3 of Dion et al. (2013)
+
+```{r replicate table 3}
+
+
+logit_fun <- function(y, X, theta){
+    
+    if(!is.null(ncol(X))){
+      
+      beta <- theta[1:ncol(X)]
+      
+      mu <- X %*% beta
+
+    
+    } else {
+      
+      beta <- theta[1]
+      
+      mu <- X * beta
+
+      
+    }
+    
+    p <- 1 / ( 1 + exp(-mu) )
+    
+    logll <-  sum( y * log(p) + (1 - y) * log ( 1- p) )
+    
+    return(logll)
+    
+  }
+
+logistic_per_journal <- function(journal, vcovcoef = FALSE){
+  
+  require(tidyverse)
+  require(MASS)
+  require(rms)
+  require(optimx)
+  
+  
+  if(journal != "Pooled"){
+    df_anal <- df %>%
+      filter(newjnlid %in% journal & refauthcomplete == 1) %>%
+      dplyr::select(newjnlid, authorteam, reffemonly, newartid) %>%
+      na.omit() %>%
+      mutate(Female = ifelse(authorteam == "Female", 1, 0),
+             Mixed = ifelse(authorteam == "Mixed", 1, 0)) %>%
+      dplyr::select(-authorteam)
+    
+    
+      y <- df_anal$reffemonly
+  
+  X <- cbind(1,
+             df_anal$Female,
+             df_anal$Mixed)
+  
+  
+    
+    # start values
+  startvals <- rep(0, ncol(X))
+  
+  # optimize
+  res <- optim(
+    par = startvals,
+    fn = logit_fun,
+    y = y,
+    X = X,
+    control = list(fnscale = -1),
+    hessian = TRUE,
+    method = "BFGS"
+  )
+  
+startvals2 <- c(0, 0) # Why three this time?
+
+restricted <- optim(
+  startvals2,
+  logit_fun,
+  y = y,
+  X = X[, 1],
+  # restricted model
+  control = list(fnscale = -1),
+  method = "BFGS"
+)
+
+  coef <- res$par
+  # vcov <- solve(-res$hessian)
+  # se <- sqrt(diag(vcov))
+  
+  # Unfortunately, I am not yet able to compute robust standard errors
+  # clustered at article level by hand. But I am on it.
+  fit=lrm(data = df_anal, reffemonly ~ Female + Mixed, x=T, y=T)
+  vcov <- vcov(robcov(lrm(data = df_anal, reffemonly ~ Female + Mixed, x=T, y=T),
+               cluster = df_anal$newartid) 
+               )
+  se <- sqrt(diag(vcov))
+  ##robust standard error
+  
+  } else {
+    
+    df_anal <- df %>%
+      filter(refauthcomplete == 1) %>%
+      dplyr::select(newjnlid, authorteam, reffemonly, newartid) %>%
+      na.omit() %>%
+      mutate(Female = ifelse(authorteam == "Female", 1, 0),
+             Mixed = ifelse(authorteam == "Mixed", 1, 0),
+             APSR = ifelse(newjnlid == "APSR", 1, 0),
+             PG = ifelse(newjnlid == "Politics & Gender", 1, 0),
+             PA = ifelse(newjnlid == "Political Analysis", 1, 0),
+             Econ. = ifelse(newjnlid == "Econometrica", 1, 0),
+             SMR = ifelse(newjnlid == "Soc. Methods & Res.", 1, 0)) %>%
+      dplyr::select(-authorteam)    
+    
+      y <- df_anal$reffemonly
+  
+  X <- cbind(1,
+             df_anal$Female,
+             df_anal$Mixed,
+             df_anal$PG,
+             df_anal$PA,
+             df_anal$Econ.,
+             df_anal$SMR)
+  
+  
+    
+    # start values
+  startvals <- rep(0, ncol(X))
+  
+  # optimize
+  res <- optim(
+    par = startvals,
+    fn = logit_fun,
+    y = y,
+    X = X,
+    control = list(fnscale = -1),
+    hessian = TRUE,
+    method = "BFGS"
+  )
+  
+startvals2 <- c(0, 0) # Why three this time?
+
+restricted <- optim(
+  startvals2,
+  logit_fun,
+  y = y,
+  X = X[, 1],
+  # restricted model
+  control = list(fnscale = -1),
+  method = "BFGS"
+)
+
+  coef <- res$par
+  # vcov <- solve(-res$hessian)
+  # se <- sqrt(diag(vcov))
+  
+  # Unfortunately, I am not yet able to compute robust standard errors
+  # clustered at article level by hand. But I am on it.
+  vcov <- vcov(robcov(lrm(data = df_anal, reffemonly ~ Female + Mixed + PG + PA + Econ. + SMR, x=T, y=T),
+               cluster = df_anal$newartid))
+  #              )
+  se <- sqrt(diag(vcov))
+  ##robust standard error
+  }
+  
+  Names = c("Intercept", "Female", "Mixed", "P&G", "PA", "Econ", "SMR", "Pseudo R2", "NullLL",  "LL", "Clusters", "Observations")
+  if(journal == "Pooled"){
+  
+    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"),
+                                              round( 1- (restricted$value / res$value), 4),
+                                              round(restricted$value, 0),
+                                              round(res$value,0),
+                                              length(unique(df_anal$newartid)),
+                                               nrow(df_anal))
+                             )
+    
+  } else {
+    
+    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"),
+                                              rep("", 4),
+                                              round( 1- (restricted$value / res$value), 4),
+                                              round(restricted$value, 0),
+                                              round(res$value,0),
+                                              length(unique(df_anal$newartid)),
+                                              nrow(df_anal)))
+  }
+  
+  rownames(ModelTable) <- Names
+  colnames(ModelTable) <- journal
+  
+  
+  if(vcovcoef == FALSE){
+
+     return(ModelTable)
+  
+  } else {
+    
+    return(list(coef = coef,
+                vcov = vcov))
+  }
+    
+}
+
+
+
+
+```
+
+```{r print table 3}
+
+models <- do.call("cbind", lapply(unique(df$newjnlid), logistic_per_journal) )
+pooled <- logistic_per_journal("Pooled")
+
+flextable(cbind.data.frame(models, pooled) %>% rownames_to_column(" "))
+
+```
+
+
+## A different approach: counts of citations
+```{r}
+
+
+
+n <- 1000
+
+female <- sample(size = n, x = c(0,1), replace = TRUE)
+
+beta0 <- 3
+beta1 <- -2
+
+lambda <- exp(beta0 + beta1 * female)
+
+citations <- rpois(n, lambda)  
+
+df <- data.frame(citations = citations,
+                 female = female)
+
+
+ggplot(data = df, 
+       aes(x = citations,
+           group = as.factor(female)))+
+  geom_bar(stat = "count")
+
+df %>%
+  group_by(female) %>%
+  summarise(mean = mean(citations))
+
+
+pois_ll <- function(y, X, theta){
+  
+  beta <- theta[1:ncol(X)]
+  
+  #beta <- c(beta0, beta1)
+  
+  #y = df$citations
+  #X = cbind(rep(1, nrow(df)), df$female)
+  
+  # logl = sum(Y* (beta %*% t(X)) - exp(beta %*% t(X)))
+  
+  logll <- -sum(exp(beta %*% t(X))) + sum(y * (beta%*% t(X))) - sum(log(factorial(y)))
+  
+  #ll <- prod( ( exp(-exp(beta %*% t(X))) * exp(beta %*% t(X)) ^ y ) / ( factorial(y) ) )
+  
+  return(logll)
+  
+}
+
+stval <- c(0, 0)
+res <-
+  optim(
+    stval,
+    pois_ll,
+    y = df$citations,
+    X = cbind(rep(1, nrow(df)), df$female),
+    control = list(fnscale = -1), # this is important
+    hessian = TRUE,
+    method = "BFGS"
+    # and tell optimx to maximize rather than to minimize.
+  )    
+coef <- res$par
+varcov <- solve(-res$hessian)
+
+
+## simulate the data
+
+
+scenario <- c(0,1)
+nsim <- 1000
+S <- mvrnorm(nsim, coef, solve(-res$hessian))
+
+
+sim_pois <- function(scenario, nsim, S){
+  
+  scenarios <- c(1, scenario)
+  
+  mu <- S %*% scenarios
+  
+  # response function
+  lambda <- exp(mu)
+  
+  pois <- rpois(nsim, lambda)
+  
+  #pois <- lambda
+  
+  mean <- mean(pois)
+  lower <- quantile(pois, 0.025)
+  upper <- quantile(pois, 0.975)
+  
+  return(data.frame(mean = mean,
+                    lower = lower,
+                    upper = upper,
+                    scenario = scenario))
+
+}
+
+sim_df <- do.call("rbind", lapply(scenario, sim_pois, S = S, nsim = nsim))
+
+sim_df$scenario <- ifelse(sim_df$scenario == 1, "female", "male")
+
+ggplot(data = sim_df, aes(x = scenario, ymin = lower, max = upper))+
+  geom_errorbar()
+
+
+```
