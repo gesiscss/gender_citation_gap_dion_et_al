@@ -1,0 +1,12 @@
+install.packages(
+  "dplyr",
+  "flextable",
+  "foreign",
+  "knitr",
+  "MASS",
+  "optimx",
+  "rmarkdown",
+  "rms",
+  "rstudioapi",
+  "tidyverse"
+)
