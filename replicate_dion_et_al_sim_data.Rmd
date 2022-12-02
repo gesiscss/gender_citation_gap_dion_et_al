@@ -40,9 +40,9 @@ library(flextable)
 
 setwd(dirname(getActiveDocumentContext()$path))
 
-df <- read.dta("DSM2018PAreplication.dta")
+df <- read.dta("Data/DSM2018PAreplication.dta")
 
-df_articles <- read.dta("DSM2018PAreplication_articlesonly.dta")
+df_articles <- read.dta("Data/DSM2018PAreplication_articlesonly.dta")
 
 ```
 
