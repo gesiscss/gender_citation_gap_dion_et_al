@@ -1,11 +1,9 @@
 packages <- c(
   "flextable",
-  "dplyr",
   "kableExtra",
   "foreign",
   "knitr",
   "IRdisplay",
-  "IRkernel",
   "MASS",
   "optimx",
   "rmarkdown",
