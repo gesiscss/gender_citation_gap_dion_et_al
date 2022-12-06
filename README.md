@@ -7,7 +7,7 @@ This repository entails the code and data to replicate the published Article "Ge
 ### Installation
 You can easily access the replication files via Binder and explore the replication in the document "Replication_Dion_et_al_Walkthrough.ipynb".
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mio-hiehei/gender_citation_gap_dion_et_al/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mio-hiehei/gender_citation_gap_dion_et_al/HEAD?labpath=Replication_Dion_et_al_Walkthrough.ipynb)
 
 
 ### Structure
