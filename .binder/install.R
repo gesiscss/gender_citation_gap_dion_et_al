@@ -1,5 +1,6 @@
 install.packages(
   "flextable",
+  "dplyr",
   "kableExtra",
   "foreign",
   "knitr",
