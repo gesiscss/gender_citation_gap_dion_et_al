@@ -1,0 +1,7 @@
+library(tidyverse)
+library(MASS)
+library(foreign)
+library(IRdisplay)
+library(optimx)
+library(rms)
+library(kableExtra)
