@@ -1,8 +1,9 @@
 install.packages(
-  "dplyr",
   "flextable",
+  "kableExtra",
   "foreign",
   "knitr",
+  "IRdisplay",
   "MASS",
   "optimx",
   "rmarkdown",

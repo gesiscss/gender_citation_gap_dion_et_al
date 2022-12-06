@@ -1,5 +1,5 @@
 
-### Logistic Function to be optimized.
+# ## Logistic Function to be optimized.
 
 logit_fun <- function(y, X, theta){
   
@@ -29,5 +29,5 @@ logit_fun <- function(y, X, theta){
   
   #
   return(logll)
-  
+
 }
