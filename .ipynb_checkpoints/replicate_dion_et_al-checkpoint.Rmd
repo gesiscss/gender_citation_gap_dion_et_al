@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
 ```
 
-```{r load data, echo = FALSE, message = FALSE}
+```{r load data, echo=FALSE, message=FALSE}
 
 
 ## replicating Dion et al (2018): Gendered Citation Patterns across Political Science and Social Science Methodology Fields 
@@ -20,13 +20,11 @@ knitr::opts_chunk$set(echo = TRUE,
 
 library(tidyverse)
 library(MASS)
-library(rstudioapi)
 library(foreign)
 library(optimx)
 library(rms)
 library(flextable)
 
-setwd(dirname(getActiveDocumentContext()$path))
 
 df <- read.dta("Data/DSM2018PAreplication.dta")
 
