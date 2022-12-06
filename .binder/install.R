@@ -13,6 +13,6 @@ packages <- c(
 
 for(package in packages){
   
-  install.packages(package,repos = "https://cloud.r-project.org/", dependencies=TRUE)
+  install.packages(package,repos = "https://cloud.r-project.org/")
   
 }
