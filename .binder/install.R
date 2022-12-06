@@ -1,4 +1,4 @@
-install.packages(
+packages <- c(
   "flextable",
   "dplyr",
   "kableExtra",
@@ -12,3 +12,9 @@ install.packages(
   "rms",
   "tidyverse"
 )
+
+for(package in packages){
+  
+  install.packages(package,repos = "https://cloud.r-project.org/", dependencies=TRUE)
+  
+}
