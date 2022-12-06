@@ -4,10 +4,10 @@ install.packages(
   "foreign",
   "knitr",
   "IRdisplay",
+  "IRkernel",
   "MASS",
   "optimx",
   "rmarkdown",
   "rms",
-  "rstudioapi",
   "tidyverse"
 )
