@@ -1,7 +1,8 @@
 <!-- #region -->
 ## Replication: Dion, Sumner, Mitchell (2018): Gendered Citation Patterns across Political Science and Social Science Methodology Fields
 
-This repository entails the code and data to replicate the published Article "Gendered Citation Patterns across Political Science and Social Science Methodology Fields" by Dion, Sumner and Mitchell (2018) and the structure to explore the replication interactively using Binder. 
+
+This repository entails the code and data to replicate the published Article ["Gendered Citation Patterns across Political Science and Social Science Methodology Fields" by Dion, Sumner and Mitchell (2018)](https://www.cambridge.org/core/journals/political-analysis/article/gendered-citation-patterns-across-political-science-and-social-science-methodology-fields/5E8E92DB7454BCAE41A912F9E792CBA7) and the structure to explore the replication interactively using Binder. 
 
 
 ### Installation

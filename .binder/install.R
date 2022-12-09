@@ -2,6 +2,7 @@ packages <- c("tidyverse",
              "library",
              "foreign",
              "IRdisplay",
+             "IRkernel",
              "optimx",
              "rms",
              "kableExtra")
