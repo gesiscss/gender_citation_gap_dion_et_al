@@ -1,3 +1,1 @@
 jupyter lab build
-sudo apt install libjpeg-dev liblapack-dev libblas-dev
-R -e 'install.packages("renv"); renv::restore()'

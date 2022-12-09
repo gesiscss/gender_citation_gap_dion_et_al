@@ -1,7 +1,6 @@
 packages <- c("tidyverse",
              "library",
              "foreign",
-             "Hmisc",
              "IRdisplay",
              "IRkernel",
              "optimx",
