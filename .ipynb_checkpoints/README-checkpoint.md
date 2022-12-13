@@ -22,3 +22,5 @@ You can easily access the replication files via Binder and explore the replicati
 ### References
 
 Dion, M. L., Sumner, J. L., & Mitchell, S. M. (2018). Gendered citation patterns across political science and social science methodology fields. *Political analysis*, 26(3), 312-327.
+
+Dion, Michelle L.; Sumner, Jane Lawrence; Mitchell, Sara McLaughlin, 2018, "Replication Data for: Gendered Citation Patterns across Political Science and Social Science Methodology Fields", https://doi.org/10.7910/DVN/R7AQT1, Harvard Dataverse, V1, UNF:6:CInBeM5eziTIPGjBVTpr4A== [fileUNF] 
