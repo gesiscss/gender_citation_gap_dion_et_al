@@ -1,6 +1,9 @@
 logistic_pooled <- function(df, coefvcov_only = FALSE){
     
-    
+    ## The function below estimates a pooled logistic regression model from Dion et al. (2018).
+    ### Input: dataframe from Dion et al. (2018).
+    #### optionally: boolean if we only want coefficients and variance covariance matrix.
+    ### Output: Model table containing logistic models estimating probability of authors citing a female research team.    
   
   require(tidyverse)
   require(MASS)

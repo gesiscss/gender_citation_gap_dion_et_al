@@ -1,7 +1,9 @@
-
-# ## Logistic Function to be optimized.
-
 logit_fun <- function(y, X, theta){
+    
+    ## This is a logit function to be optimised with optim-function.
+    ### Input: dependent variable vector y, independent variable matrix X. theta will be optimised and does not require
+    ### an input.
+    ### Output: summed maximum logged likelihood of function with given parameter values as a scalar.
   
   # if there are >= 2 independent variables:
   if(!is.null(ncol(X))){
