@@ -1,4 +1,4 @@
-logistic_per_journal <- function(df, journal){
+logistic_per_journal <- function(df, journal, coefvcov_only = FALSE){
   
   require(tidyverse)
   require(MASS)
@@ -35,7 +35,20 @@ logistic_per_journal <- function(df, journal){
       method = "BFGS"
     )
     
-    # calculate restricted model.
+    coef <- res$par
+    # vcov <- solve(-res$hessian)
+    # se <- sqrt(diag(vcov))
+    
+    # Unfortunately, I am not yet able to compute robust standard errors
+    # clustered at article level by hand. But I am on it.
+    fit <- lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T)
+    vcov <- vcov(robcov(lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T),
+                        cluster = df_ana$newartid) 
+    )
+    se <- sqrt(diag(vcov))
+    ##robust standard error
+    
+        # calculate restricted model.
     startvals2 <- c(0, 0)
     
     restricted <- optim(
@@ -48,35 +61,30 @@ logistic_per_journal <- function(df, journal){
       method = "BFGS"
     )
     
-    coef <- res$par
-    # vcov <- solve(-res$hessian)
-    # se <- sqrt(diag(vcov))
-    
-    # Unfortunately, I am not yet able to compute robust standard errors
-    # clustered at article level by hand. But I am on it.
-    fit=lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T)
-    vcov <- vcov(robcov(lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T),
-                        cluster = df_ana$newartid) 
-    )
-    se <- sqrt(diag(vcov))
-    ##robust standard error
-    
   
   Names = c("Intercept", "Female", "Mixed", "Pseudo R2", "NullLL",  "LL", "Clusters", "Observations")
     
-    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"),
-                                      round( 1- (restricted$value / res$value), 4),
-                                      round(restricted$value, 0),
-                                      round(res$value,0),
-                                      length(unique(df_ana$newartid)),
-                                      nrow(df_ana)))
+  ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"), # coefficients
+                                      round( 1- (restricted$value / res$value), 6), # pseudo r2
+                                      round(restricted$value, 0), # NullLL
+                                      round(res$value,0), # LL
+                                      length(unique(df_ana$newartid)), # Clusters
+                                      nrow(df_ana))) # Observations
   
   rownames(ModelTable) <- Names
   colnames(ModelTable) <- journal
   
-  
-    return(list(ModelTable = ModelTable,
-                coef = coef,
-                vcov = vcov))
+    
+    
+    if(coefvcov_only == TRUE){
+        return(list(coef = coef,
+                    vcov = vcov))
+
+        
+    } else{
+        
+        return(ModelTable)
+
+    }
 
 }

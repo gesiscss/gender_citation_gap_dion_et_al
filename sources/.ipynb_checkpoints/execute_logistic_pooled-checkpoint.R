@@ -1,33 +1,33 @@
-logistic_per_journal <- function(journal, vcovcoef = FALSE){
+logistic_pooled <- function(df, coefvcov_only = FALSE){
+    
+    
   
   require(tidyverse)
   require(MASS)
   require(rms)
   require(optimx)
-  
-  
-  if(journal != "Pooled"){
-    df_ana <- df %>%
-      filter(newjnlid %in% journal & refauthcomplete == 1) %>%
-      dplyr::select(newjnlid, authorteam, reffemonly, newartid) %>%
-      na.omit() %>%
-      mutate(Female = ifelse(authorteam == "Female", 1, 0),
-             Mixed = ifelse(authorteam == "Mixed", 1, 0)) %>%
-      dplyr::select(-authorteam)
     
+          if(!(all(c("Female", "Mixed", "APSR", "PG", "PA", "Econ.", "SMR", "newjnlid", "reffemonly", "newartid") %in% colnames(df)))){
+        
+        stop("Your dataframe does not contain one of the variables for the analysis.")
+    }
     
-    y <- df_ana$reffemonly
+    y <- df$reffemonly
     
     X <- cbind(1,
-               df_ana$Female,
-               df_ana$Mixed)
+               df$Female,
+               df$Mixed,
+               df$PG,
+               df$PA,
+               df$Econ.,
+               df$SMR)
     
     
     
     # start values
     startvals <- rep(0, ncol(X))
     
-    # optimize
+    # optimise
     res <- optim(
       par = startvals,
       fn = logit_fun,
@@ -38,6 +38,10 @@ logistic_per_journal <- function(journal, vcovcoef = FALSE){
       method = "BFGS"
     )
     
+        coef <- res$par
+
+    
+    # optimise restricted model
     startvals2 <- c(0, 0)
     
     restricted <- optim(
@@ -50,108 +54,30 @@ logistic_per_journal <- function(journal, vcovcoef = FALSE){
       method = "BFGS"
     )
     
-    coef <- res$par
-    # vcov <- solve(-res$hessian)
-    # se <- sqrt(diag(vcov))
-    
-    # Unfortunately, I am not yet able to compute robust standard errors
-    # clustered at article level by hand. But I am on it.
-    fit=lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T)
-    vcov <- vcov(robcov(lrm(data = df_ana, reffemonly ~ Female + Mixed, x=T, y=T),
-                        cluster = df_ana$newartid) 
-    )
-    se <- sqrt(diag(vcov))
-    ##robust standard error
-    
-  } else {
-    
-    df_ana <- df %>%
-      filter(refauthcomplete == 1) %>%
-      dplyr::select(newjnlid, authorteam, reffemonly, newartid) %>%
-      na.omit() %>%
-      mutate(Female = ifelse(authorteam == "Female", 1, 0),
-             Mixed = ifelse(authorteam == "Mixed", 1, 0),
-             APSR = ifelse(newjnlid == "APSR", 1, 0),
-             PG = ifelse(newjnlid == "Politics & Gender", 1, 0),
-             PA = ifelse(newjnlid == "Political Analysis", 1, 0),
-             Econ. = ifelse(newjnlid == "Econometrica", 1, 0),
-             SMR = ifelse(newjnlid == "Soc. Methods & Res.", 1, 0)) %>%
-      dplyr::select(-authorteam)    
-    
-    y <- df_ana$reffemonly
-    
-    X <- cbind(1,
-               df_ana$Female,
-               df_ana$Mixed,
-               df_ana$PG,
-               df_ana$PA,
-               df_ana$Econ.,
-               df_ana$SMR)
-    
-    
-    
-    # start values
-    startvals <- rep(0, ncol(X))
-    
-    # optimize
-    res <- optim(
-      par = startvals,
-      fn = logit_fun,
-      y = y,
-      X = X,
-      control = list(fnscale = -1),
-      hessian = TRUE,
-      method = "BFGS"
-    )
-    
-    startvals2 <- c(0, 0)
-    
-    restricted <- optim(
-      startvals2,
-      logit_fun,
-      y = y,
-      X = X[, 1],
-      # restricted model
-      control = list(fnscale = -1),
-      method = "BFGS"
-    )
-    
-    coef <- res$par
     
     # Robust standard errors computed using the robcov-package.
-    vcov <- vcov(robcov(lrm(data = df_ana, reffemonly ~ Female + Mixed + PG + PA + Econ. + SMR, x=T, y=T),
-                        cluster = df_ana$newartid))
-    #              )
-    se <- sqrt(diag(vcov))
-  }
-  
-  Names = c("Intercept", "Female", "Mixed", "P&G", "PA", "Econ", "SMR", "Pseudo R2", "NullLL",  "LL", "Clusters", "Observations")
-  if(journal == "Pooled"){
+    vcov <- vcov(robcov(lrm(data = df, reffemonly ~ Female + Mixed + PG + PA + Econ. + SMR, x=T, y=T),
+                        cluster = df$newartid))
     
-    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"),
-                                      round( 1- (restricted$value / res$value), 4),
-                                      round(restricted$value, 0),
-                                      round(res$value,0),
-                                      length(unique(df_ana$newartid)),
-                                      nrow(df_ana))
+    # calculate standard error as square of diagonal values of vcov matrix
+    se <- sqrt(diag(vcov))
+  
+  Names <- c("Intercept", "Female", "Mixed", "P&G", "PA", "Econ", "SMR", "Pseudo R2", "NullLL",  "LL", "Clusters", "Observations")
+    
+    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"), # coefficients
+                                      round( 1- (restricted$value / res$value), 6), # pseudo r2
+                                      round(restricted$value, 0), # nullLL
+                                      round(res$value,0), # LL
+                                      length(unique(df$newartid)), # Clusters
+                                      nrow(df)) # Observations
     )
     
-  } else {
-    
-    ModelTable <- data.frame(Name = c(paste0(round(coef, 2), " (", round(se, 2), ")"),
-                                      rep("", 4),
-                                      round( 1- (restricted$value / res$value), 4),
-                                      round(restricted$value, 0),
-                                      round(res$value,0),
-                                      length(unique(df_ana$newartid)),
-                                      nrow(df_ana)))
-  }
   
   rownames(ModelTable) <- Names
-  colnames(ModelTable) <- journal
+  colnames(ModelTable) <- "Pooled"
   
   
-  if(vcovcoef == FALSE){
+  if(coefvcov_only == FALSE){
     
     return(ModelTable)
     
