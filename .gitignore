@@ -1,6 +1,4 @@
 .Rhistory
 .Rprofile
-\renv
-renv.lock
-ipynb_checkpoints
+\ipynb_checkpoints
 
