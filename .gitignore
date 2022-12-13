@@ -2,3 +2,5 @@
 .Rprofile
 \renv
 renv.lock
+ipynb_checkpoints
+
