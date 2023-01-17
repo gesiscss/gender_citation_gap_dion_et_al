@@ -1,1 +1,2 @@
 jupyter lab build
+R -e 'IRkernel::installspec()'
